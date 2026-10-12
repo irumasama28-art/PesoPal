@@ -83,6 +83,10 @@ public class SettingsPage : ContentPage
                 Ui.SettingRow("Store name", settings.StoreName, RenameStoreAsync),
                 Ui.SettingRow("Fee table", "6 bands", OpenFeesAsync)));
 
+            _content.Add(SectionLabel("Appearance"));
+            _content.Add(Group(
+                CreateThemeSelector()));
+
             _content.Add(SectionLabel("Daily work"));
             _content.Add(Group(
                 Ui.SettingRow("Close the day", "Count cash", OpenClosingAsync)));
@@ -267,5 +271,62 @@ public class SettingsPage : ContentPage
             }
             catch { }
         }
+    }
+
+    /// <summary>
+    /// Create a theme selector row with picker
+    /// </summary>
+    private View CreateThemeSelector()
+    {
+        var themeService = App.ThemeService;
+        var currentTheme = themeService?.GetCurrentTheme() ?? "light";
+
+        var grid = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            RowDefinitions = { new RowDefinition(GridLength.Auto) },
+            Padding = new Thickness(16, 12),
+            ColumnSpacing = 12,
+            BackgroundColor = Pal.Bg
+        };
+
+        var label = Ui.Text("Theme", 16, false, Pal.Navy);
+        label.VerticalOptions = LayoutOptions.Center;
+        grid.Add(label, 0, 0);
+
+        // Create a simple picker for theme selection
+        var picker = new Picker
+        {
+            Title = "Select theme",
+            BackgroundColor = Pal.Bg,
+            TextColor = Pal.Navy,
+            ItemsSource = new List<string> { "Light", "Dark", "System" },
+            SelectedIndex = currentTheme switch
+            {
+                "dark" => 1,
+                "system" => 2,
+                _ => 0
+            },
+            HorizontalOptions = LayoutOptions.End,
+            VerticalOptions = LayoutOptions.Center
+        };
+
+        picker.SelectedIndexChanged += (s, e) =>
+        {
+            var selectedTheme = picker.SelectedIndex switch
+            {
+                1 => "dark",
+                2 => "system",
+                _ => "light"
+            };
+
+            if (themeService != null)
+            {
+                themeService.ApplyTheme(selectedTheme);
+            }
+        };
+
+        grid.Add(picker, 1, 0);
+        return grid;
     }
 }

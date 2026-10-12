@@ -8,10 +8,32 @@ public partial class App : Application
 {
     private LedgerDatabase _database = null!;
 
+    /// <summary>
+    /// Static reference to the app instance for global access
+    /// </summary>
+    public static App? Current { get; private set; }
+
+    /// <summary>
+    /// Static reference to the database instance
+    /// </summary>
+    public static LedgerDatabase? Database { get; private set; }
+
+    /// <summary>
+    /// Static reference to app settings
+    /// </summary>
+    public static Models.AppSettings? AppSettings { get; private set; }
+
+    /// <summary>
+    /// Static reference to the theme service
+    /// </summary>
+    public static Services.ThemeService? ThemeService { get; private set; }
+
     public App(LedgerDatabase database)
     {
         InitializeComponent();
         _database = database;
+        Current = this;
+        Database = database;
 
         // Start initialization in background; CreateWindow will provide the initial loading window.
         _ = InitializeAppAsync(database);
@@ -37,6 +59,11 @@ public partial class App : Application
             var dbTask = database.InitializeAsync();
 
             await Task.WhenAll(introTask, dbTask);
+
+            // Get AppSettings and initialize theme
+            AppSettings = await database.GetSettingsAsync();
+            ThemeService = new Services.ThemeService();
+            ThemeService.InitializeTheme();
 
             // Fade out and switch to main shell on main thread.
             await MainThread.InvokeOnMainThreadAsync(async () =>

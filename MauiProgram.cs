@@ -17,6 +17,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<LedgerDatabase>();
         // Register UpdateState singleton
         builder.Services.AddSingleton<UpdateState>();
+        // Register ThemeService singleton
+        builder.Services.AddSingleton<ThemeService>();
 #if ANDROID
         // Register platform update service only on Android
         builder.Services.AddSingleton<CashLedgerAndroid.Services.IUpdateService, CashLedgerAndroid.Platforms.Android.Services.UpdateService>();
@@ -39,8 +41,7 @@ public static class MauiProgram
                 {
                     try
                     {
-                        var info = await updater.CheckForUpdateAsync("https://raw.githubusercontent.com/# PowerShell - Get current Unix timestamp
-[int](Get-Date -UFormat %s)Synonymz/PesoPal/gh-pages/latest.json");
+                        var info = await updater.CheckForUpdateAsync("https://raw.githubusercontent.com/Synonymz/PesoPal/gh-pages/latest.json");
                         state.SetLatest(info);
                     }
                     catch { }

@@ -8,6 +8,9 @@ public class AppSettings
     public int Id { get; set; } = 1;
     public string StoreName { get; set; } = "My Cash Store";
 
+    // Theme preference: "light", "dark", or "system"
+    public string ThemeMode { get; set; } = "light";
+
     // Editable default fee bands; values are defaults and can be changed in Settings > Fee table.
     public decimal FeeUpTo500 { get; set; } = 10;
     public decimal FeeUpTo1000 { get; set; } = 20;
