@@ -21,7 +21,6 @@
     <MauiIcon Include="Resources\pesopal_logo.svg" Color="#FFFFFF" BaseSize="256,256" />
     <!-- Splash: optional custom splash image in Resources/Splash/loading.png if provided -->
     <MauiSplashScreen Include="Resources\Splash\loading.png" Color="#0066F0" BaseSize="200,200" Condition="Exists('Resources\Splash\loading.png')" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0066F0" BaseSize="128,128" />
 
     <!-- Ensure the tab icons are explicitly included so the resizetizer processes them -->
     <MauiImage Include="Resources\Images\home_new.svg" />
