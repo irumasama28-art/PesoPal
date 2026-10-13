@@ -3,7 +3,7 @@
 ## ✅ Pre-Release Setup (One-Time)
 
 ### GitHub Setup
-- [ ] Repository created: https://github.com/Synonymz/PesoPal
+- [ ] Repository created: https://github.com/irumasama28-art/PesoPal
 - [ ] `gh-pages` branch created (for hosting `latest.json`)
   ```bash
   git checkout --orphan gh-pages
@@ -82,21 +82,21 @@ git push origin v1.2.3
 ```
 
 ### Step 3: Monitor GitHub Actions
-1. Go to https://github.com/Synonymz/PesoPal/actions
+1. Go to https://github.com/irumasama28-art/PesoPal/actions
 2. Watch the "Build and Publish APK" workflow run
 3. Should take 5-10 minutes to complete
 4. Check for errors in logs if it fails
 
 ### Step 4: Verify Release
-1. Go to https://github.com/Synonymz/PesoPal/releases/tag/v1.2.3
+1. Go to https://github.com/irumasama28-art/PesoPal/releases/tag/v1.2.3
 2. Confirm APK is uploaded as release asset
-3. Go to https://raw.githubusercontent.com/Synonymz/PesoPal/gh-pages/latest.json
+3. Go to https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json
 4. Should show:
    ```json
    {
 	 "versionCode": 1700000000,
 	 "versionName": "v1.2.3",
-	 "apkUrl": "https://github.com/Synonymz/PesoPal/releases/download/v1.2.3/...-Signed.apk",
+	 "apkUrl": "https://github.com/irumasama28-art/PesoPal/releases/download/v1.2.3/...-Signed.apk",
 	 "sha256": "abc123def456..."
    }
    ```
@@ -238,7 +238,7 @@ Then update build step to use local `cashledger.keystore`:
    pwsh -File tools/generate-latest.ps1 \
 	 -Tag v1.2.3 \
 	 -AssetPath "C:\path\to\app-Signed.apk" \
-	 -Repo Synonymz/PesoPal \
+	 -Repo irumasama28-art/PesoPal \
 	 -Branch gh-pages \
 	 -Push  # Only if git is configured
    ```
@@ -297,26 +297,276 @@ dotnet publish -f net10.0-android -c Release \
   /p:AndroidSigningStorePass="YOUR_PASS"
 
 # 2. Upload APK to GitHub Release
-# (Use web UI or gh CLI)
-gh release create v1.2.3 artifacts/publish/*.apk \
-  --latest \
-  --title "v1.2.3"
+---
 
-# 3. Compute SHA-256
-certUtil -hashfile artifacts/publish/app-release.apk SHA256
-# or
-Get-FileHash artifacts/publish/app-release.apk -Algorithm SHA256
+## 🚀 Quick-Start Release Process (5 min)
 
-# 4. Create/update latest.json
-# (See tools/generate-latest.ps1 for logic)
+### Prerequisites
+- ✅ GitHub secrets configured (4 secrets)
+- ✅ gh-pages branch exists
+- ✅ Android Keystore file stored locally
 
-# 5. Push to gh-pages
-git clone --branch gh-pages https://github.com/Synonymz/PesoPal.git gh-pages-work
-cp latest.json gh-pages-work/
-cd gh-pages-work
-git add latest.json
-git commit -m "Update latest.json for v1.2.3"
-git push origin gh-pages
+### Release Steps
+
+**1. Update Version Code**
+```powershell
+# Generate new Unix timestamp
+[int](Get-Date -UFormat %s)  # e.g., 1791820575
+
+# Edit CashLedgerAndroid.csproj and update:
+# <AndroidVersionCode>NEW_TIMESTAMP</AndroidVersionCode>
+```
+
+**2. Commit & Tag**
+```bash
+cd C:\Dev\CashLedgerAndroid
+git add CashLedgerAndroid.csproj
+git commit -m "Bump version for vX.Y.Z"
+git tag -a vX.Y.Z -m "Release vX.Y.Z - Description"
+git push origin vX.Y.Z
+```
+
+**3. Monitor Workflow**
+- Go to: https://github.com/irumasama28-art/PesoPal/actions
+- Click the "Build and Publish APK" workflow
+- Watch progress (5-10 minutes typically)
+
+**4. Verify Release**
+- ✅ GitHub Release created: https://github.com/irumasama28-art/PesoPal/releases/tag/vX.Y.Z
+- ✅ APK uploaded to release assets
+- ✅ latest.json updated: https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json
+
+**5. Test on Device**
+- Install old version on test device/emulator
+- Settings → Check for updates
+- Should show UPDATE available within seconds
+- Test install flow end-to-end
+
+---
+
+## 📋 Troubleshooting Release Issues
+
+### ❌ Workflow Failed: "ANDROID_KEYSTORE_PATH secret not configured"
+**Solution:**
+1. Settings → Secrets and variables → Actions → Check all 4 secrets exist:
+   - `ANDROID_KEYSTORE_PATH` (base64 encoded keystore file)
+   - `ANDROID_KEY_ALIAS` (e.g., `pesopa_key`)
+   - `ANDROID_KEY_PASSWORD` (private key password)
+   - `ANDROID_KEYSTORE_PASSWORD` (keystore password)
+
+2. If missing, delete old release, add secrets, and push tag again
+
+### ❌ APK Not Found in Build Step
+**Symptom:** "No APK file found in artifacts/publish"
+
+**Solution:**
+1. Check build logs for .NET/Android compilation errors
+2. Verify `CashLedgerAndroid.csproj` has correct configuration
+3. Ensure keystore parameters are not causing silent fail
+4. Re-push tag to retry: `git push origin --delete vX.Y.Z && git push origin vX.Y.Z`
+
+### ❌ latest.json Not Created
+**Symptom:** https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json returns 404
+
+**Solution:**
+1. Verify gh-pages branch exists: `git branch -a | grep gh-pages`
+2. Check if initial commit is on gh-pages
+3. Manually push to trigger script:
+   ```bash
+   git clone --branch gh-pages https://github.com/irumasama28-art/PesoPal.git gh-test
+   cd gh-test
+   # gh-pages should have latest.json file
+   ```
+
+### ❌ Wrong Repository URL in Workflow
+**Symptom:** Release goes to Synonymz/PesoPal instead of irumasama28-art/PesoPal
+
+**Solution:**
+- Workflow already configured to use `irumasama28-art/PesoPal`
+- If you changed fork location, update `.github/workflows/publish-release.yml`:
+  ```yaml
+  -Repo irumasama28-art/PesoPal
+  ```
+
+---
+
+## 📝 Release Changelog Template
+
+When creating a release tag, use this format:
+
+```
+Release vX.Y.Z - Your App Name
+
+What's New:
+- Feature 1 description
+- Feature 2 description
+- Bug fix 1 description
+
+Improvements:
+- Performance improvement 1
+- UI improvement 1
+
+Known Issues:
+- (If any, list here)
+
+Installation:
+1. Settings → Check for updates
+2. Tap "Install" when prompted
+3. App will restart automatically
+```
+
+---
+
+## 💡 Release Workflow Enhanced Features (v2.0)
+
+The GitHub Actions workflow now includes:
+
+✅ **Tag Format Validation**
+- Ensures tags match semantic versioning (vX.Y.Z)
+- Fails early if format is invalid
+
+✅ **Secret Pre-Flight Check**
+- Validates all 4 required secrets before build
+- Clear error messages if any are missing
+
+✅ **Better Logging**
+- Timestamps on all operations
+- Emoji indicators (✅, ❌, 📝, etc.)
+- Clearer progress messages
+
+✅ **APK Verification**
+- Confirms APK file actually created
+- Lists file size for verification
+- Fails with clear error if APK missing
+
+✅ **Release Summary**
+- Automatic summary on success/failure
+- Direct links to release and latest.json
+- Useful for CI/CD dashboards
+
+✅ **Better Error Handling**
+- Graceful failure messages
+- Exit codes for automation
+- PowerShell script with improved logging
+
+---
+
+## 🎯 Best Practices
+
+1. **Always test locally first**
+   - Build locally to catch errors before CI
+   - `dotnet publish -f net10.0-android -c Release`
+
+2. **Use meaningful commit messages**
+   - `git commit -m "Bump version for v1.2.3"`
+   - `git tag -a v1.2.3 -m "Release v1.2.3 - Added transaction filters"`
+
+3. **Monitor first release carefully**
+   - Allow time for workflow to complete
+   - Check latest.json is valid JSON
+   - Test update on actual device
+
+4. **Keep secrets secure**
+   - Never commit keystore file
+   - Never output secrets in logs
+   - Rotate passwords periodically
+
+5. **Document breaking changes**
+   - If database schema changes, note in Release notes
+   - If API format changes, update update system docs
+
+---
+
+## 🔗 Useful Workflow Links
+
+- **Workflow File:** `.github/workflows/publish-release.yml`
+- **PowerShell Script:** `tools/generate-latest.ps1`
+- **Release History:** https://github.com/irumasama28-art/PesoPal/releases
+- **Workflow Runs:** https://github.com/irumasama28-art/PesoPal/actions/workflows/publish-release.yml
+- **latest.json:** https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json
+
+---
+
+## 🐛 Manual Release (If Workflow Fails)
+
+If GitHub Actions workflow is broken, you can manually release:
+
+```powershell
+# 1. Build locally
+dotnet publish CashLedgerAndroid.slnx -f net10.0-android -c Release `
+  -o artifacts/publish `
+  /p:AndroidSigningKeyStore="path/to/cashledger.keystore" `
+  /p:AndroidSigningKeyAlias="pesopa_key" `
+  /p:AndroidSigningKeyPass="****" `
+  /p:AndroidSigningStorePass="****"
+
+# 2. Create release on GitHub (use web UI or gh CLI)
+gh release create v1.2.3 artifacts/publish/*.apk --latest --title "v1.2.3"
+
+# 3. Generate and push latest.json
+pwsh -File tools/generate-latest.ps1 `
+  -Tag v1.2.3 `
+  -AssetPath artifacts/publish/*.apk `
+  -Repo irumasama28-art/PesoPal `
+  -Branch gh-pages `
+  -Push
+```
+
+---
+
+## 🎓 Release Workflow Basics
+
+### What Happens When You Push a Tag
+
+1. **GitHub detects tag:** v1.2.3 pushed
+2. **Workflow triggers:** `publish-release.yml` starts
+3. **Validation:** Tag format checked (vX.Y.Z)
+4. **Secrets check:** All 4 secrets verified
+5. **Build:** Android APK built and signed
+6. **APK validation:** Confirms APK created and has reasonable size
+7. **Release created:** GitHub Release created with tag details
+8. **APK uploaded:** Signed APK uploaded to Release assets
+9. **latest.json generated:**
+   - SHA-256 hash computed
+   - Download URL constructed
+   - JSON file created with version info and build timestamp
+10. **pushed to gh-pages:** latest.json pushed to gh-pages branch
+11. **Summary:** Clear success/failure message with links
+
+### Download URL Format
+
+```
+https://github.com/irumasama28-art/PesoPal/releases/download/v1.2.3/CashLedgerAndroid-Signed.apk
+```
+
+App uses this in update system to download new versions.
+
+---
+
+## 📊 Release Workflow Diagram
+
+```
+User pushes tag
+      ↓
+GitHub Actions triggered
+      ↓
+[Validate] Format check, Secret check
+      ↓
+[Build] .NET publish with signing
+      ↓
+[Verify] APK exists and valid
+      ↓
+[Create] GitHub Release
+      ↓
+[Upload] APK to Release assets
+      ↓
+[Generate] latest.json with hash + download URL
+      ↓
+[Push] latest.json to gh-pages branch
+      ↓
+✅ Release Complete
+      ↓
+App checks latest.json URLs, downloads APK automatically
 ```
 
 ---
@@ -325,8 +575,8 @@ git push origin gh-pages
 
 - **First release not working?** Check `.github/workflows/publish-release.yml` logs
 - **Need to rollback?** Delete release or edit `latest.json` on gh-pages
-- **Want periodic checks?** Add timer + `AppSettings.CheckUpdateFrequency` field
-- **Want WiFi-only updates?** Check `ConnectivityManager` before download
+- **Want periodic checks?** App already checks on app launch
+- **Want WiFi-only updates?** Modify `UpdateService.cs` to check network type
 
 ---
 

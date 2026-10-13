@@ -46,6 +46,7 @@ public class LedgerDatabase
 
                 await _db.CreateTableAsync<TransactionRecord>();
                 await _db.CreateTableAsync<AppSettings>();
+                await _db.CreateTableAsync<RecurringTransaction>();
                 var existing = await _db.Table<AppSettings>().Where(s => s.Id == 1).FirstOrDefaultAsync();
                 if (existing is null) await _db.InsertAsync(new AppSettings());
                 _initialized = true;
@@ -158,5 +159,107 @@ public class LedgerDatabase
 
         await InitializeAsync();
         Changed();
+    }
+
+    // ===== Recurring Transaction Methods =====
+
+    public async Task<List<RecurringTransaction>> GetRecurringTransactionsAsync()
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            return await _db.Table<RecurringTransaction>().ToListAsync();
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async Task<RecurringTransaction?> GetRecurringTransactionAsync(int id)
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            return await _db.FindAsync<RecurringTransaction>(id);
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async Task<int> SaveRecurringTransactionAsync(RecurringTransaction recurring)
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            var result = await _db.InsertAsync(recurring);
+            Changed();
+            return result;
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async Task<int> UpdateRecurringTransactionAsync(RecurringTransaction recurring)
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            var result = await _db.UpdateAsync(recurring);
+            Changed();
+            return result;
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async Task<int> DeleteRecurringTransactionAsync(RecurringTransaction recurring)
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            var result = await _db.DeleteAsync(recurring);
+            Changed();
+            return result;
+        }
+        finally { _gate.Release(); }
+    }
+
+    /// <summary>
+    /// Process due recurring transactions and generate TransactionRecords
+    /// </summary>
+    public async Task<int> ProcessDueRecurringTransactionsAsync()
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            int generatedCount = 0;
+            var recurring = await _db.Table<RecurringTransaction>()
+                .Where(r => r.IsActive)
+                .ToListAsync();
+
+            foreach (var recurring_item in recurring)
+            {
+                if (recurring_item.IsWithinActiveRange() && recurring_item.IsDue())
+                {
+                    // Generate a new transaction
+                    var newTransaction = new TransactionRecord
+                    {
+                        CustomerName = recurring_item.CustomerName,
+                        Type = recurring_item.Type,
+                        Amount = recurring_item.Amount,
+                        Fee = recurring_item.Fee,
+                        ReferenceNumber = recurring_item.ReferenceNumber,
+                        Notes = recurring_item.Notes,
+                        CreatedAt = DateTime.Now
+                    };
+
+                    await _db.InsertAsync(newTransaction);
+                    recurring_item.LastProcessedDate = DateTime.Now;
+                    await _db.UpdateAsync(recurring_item);
+                    generatedCount++;
+                }
+            }
+
+            if (generatedCount > 0)
+                Changed();
+
+            return generatedCount;
+        }
+        finally { _gate.Release(); }
     }
 }

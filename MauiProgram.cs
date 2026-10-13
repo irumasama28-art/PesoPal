@@ -19,6 +19,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<UpdateState>();
         // Register ThemeService singleton
         builder.Services.AddSingleton<ThemeService>();
+        // Register RecurringTransactionService singleton
+        builder.Services.AddSingleton<RecurringTransactionService>();
 #if ANDROID
         // Register platform update service only on Android
         builder.Services.AddSingleton<CashLedgerAndroid.Services.IUpdateService, CashLedgerAndroid.Platforms.Android.Services.UpdateService>();

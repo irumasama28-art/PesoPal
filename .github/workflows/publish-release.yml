@@ -5,12 +5,55 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build-and-publish:
+  validate:
+    name: Validate Release Tag
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate tag format
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid tag format: $TAG"
+            echo "Expected format: vX.Y.Z (e.g., v1.0.0)"
+            exit 1
+          fi
+          echo "✅ Tag format valid: $TAG"
+
+  build-and-publish:
+    name: Build Android APK
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate secrets are configured
+        run: |
+          if [[ -z "${{ secrets.ANDROID_KEYSTORE_PATH }}" ]]; then
+            echo "❌ ANDROID_KEYSTORE_PATH secret not configured"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ]]; then
+            echo "❌ ANDROID_KEY_ALIAS secret not configured"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]]; then
+            echo "❌ ANDROID_KEY_PASSWORD secret not configured"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ]]; then
+            echo "❌ ANDROID_KEYSTORE_PASSWORD secret not configured"
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -33,18 +76,36 @@ jobs:
 
       - name: Build Android APK
         run: |
-          dotnet publish CashLedgerAndroid.slnx -f net10.0-android -c Release -o artifacts/publish /p:AndroidSigningKeyStore="${{ secrets.ANDROID_KEYSTORE_PATH }}" /p:AndroidSigningKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" /p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEY_PASSWORD }}" /p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+          echo "🔨 Building Android APK for release ${{ github.ref_name }}"
+          dotnet publish CashLedgerAndroid.slnx \
+            -f net10.0-android \
+            -c Release \
+            -o artifacts/publish \
+            /p:AndroidSigningKeyStore="${{ secrets.ANDROID_KEYSTORE_PATH }}" \
+            /p:AndroidSigningKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            /p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEY_PASSWORD }}" \
+            /p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
 
-      - name: Find APK
+      - name: Verify APK was created
         run: |
-          echo "Looking for APK in artifacts"
-          ls -la artifacts/publish
+          echo "📦 Checking for APK artifacts..."
+          if ls artifacts/publish/*.apk 1> /dev/null 2>&1; then
+            echo "✅ APK found:"
+            ls -lh artifacts/publish/*.apk
+          else
+            echo "❌ No APK file found in artifacts/publish"
+            echo "Directory contents:"
+            ls -la artifacts/publish
+            exit 1
+          fi
 
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,18 +113,52 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: artifacts/publish/*.apk
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate latest.json
+        run: |
+          echo "📝 Generating latest.json..."
+          mkdir -p gh-pages
+          pwsh -NoProfile -NonInteractive -File tools/generate-latest.ps1 \
+            -Tag ${{ github.ref_name }} \
+            -AssetPath artifacts/publish/*.apk \
+            -Repo irumasama28-art/PesoPal \
+            -Branch gh-pages
 
       - name: Upload latest.json as artifact
         uses: actions/upload-artifact@v4
         with:
           name: latest-json
           path: gh-pages/latest.json
+          retention-days: 30
 
-      - name: Generate latest.json and push to gh-pages
+      - name: Push latest.json to gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p tools
-          pwsh -NoProfile -NonInteractive -File tools/generate-latest.ps1 -Tag ${{ github.ref_name }} -AssetPath artifacts/publish/*.apk -Repo ${{ github.repository }} -Branch gh-pages -Push -UploadRelease
+          echo "📤 Pushing latest.json to gh-pages branch..."
+          pwsh -NoProfile -NonInteractive -File tools/generate-latest.ps1 \
+            -Tag ${{ github.ref_name }} \
+            -AssetPath artifacts/publish/*.apk \
+            -Repo irumasama28-art/PesoPal \
+            -Branch gh-pages \
+            -Push \
+            -UploadRelease
+
+      - name: Release Summary
+        if: success()
+        run: |
+          echo "✅ Release ${{ github.ref_name }} completed successfully!"
+          echo ""
+          echo "📍 Release URL: https://github.com/irumasama28-art/PesoPal/releases/tag/${{ github.ref_name }}"
+          echo "📝 latest.json URL: https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json"
+
+      - name: Release Failed
+        if: failure()
+        run: |
+          echo "❌ Release ${{ github.ref_name }} failed!"
+          echo ""
+          echo "Check the logs above for error details"
+          exit 1

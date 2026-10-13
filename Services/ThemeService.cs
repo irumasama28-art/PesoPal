@@ -87,6 +87,37 @@ public class ThemeService
         var themeName = GetCurrentTheme();
         ApplyTheme(themeName);
     }
+
+    /// <summary>
+    /// Refresh the current page to apply new theme colors
+    /// </summary>
+    private void RefreshCurrentPage()
+    {
+        try
+        {
+            // Get the current active page and force a visual refresh
+            if (Application.Current?.Windows?.Count > 0)
+            {
+                var window = Application.Current.Windows[0];
+                var page = window.Page;
+
+                if (page is Shell shell)
+                {
+                    // If it's a shell, refresh the current content
+                    if (shell.CurrentPage is ContentPage contentPage)
+                    {
+                        // Trigger OnAppearing which many pages use to refresh
+                        contentPage.SendAppearing();
+                    }
+                }
+                else if (page is ContentPage contentPage)
+                {
+                    contentPage.SendAppearing();
+                }
+            }
+        }
+        catch { }
+    }
 }
 
 /// <summary>
