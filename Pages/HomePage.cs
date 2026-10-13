@@ -11,7 +11,6 @@ public class HomePage : ContentPage
     private List<TransactionRecord> _all = new List<TransactionRecord>();
 
     private readonly Label _initials = Ui.Text("MC", 18, true, Colors.White, TextAlignment.Center);
-    private readonly Label _store = Ui.Text("My Cash Store", 25, true, Colors.White);
     private readonly Label _date = Ui.Text("", 14, false, Pal.Muted, TextAlignment.End);
     private readonly Label _fees = Ui.Text("₱0", 42, true);
     private readonly Label _inTotal = Ui.Text("₱0", 22, true);
@@ -57,8 +56,6 @@ public class HomePage : ContentPage
     private View BuildLayout()
     {
         _initials.VerticalTextAlignment = TextAlignment.Center;
-        _store.VerticalOptions = LayoutOptions.Center;
-        _store.LineBreakMode = LineBreakMode.TailTruncation;
 
         // ---- Blue header ----
         var header = new Grid
@@ -380,7 +377,6 @@ public class HomePage : ContentPage
             var settings = await _db.GetSettingsAsync();
             _all = await _db.GetTransactionsAsync();
 
-            _store.Text = settings.StoreName;
             _initials.Text = InitialsOf(settings.StoreName);
             _date.Text = DateTime.Now.ToString("MMM d, yyyy", Fmt.Inv);
 
