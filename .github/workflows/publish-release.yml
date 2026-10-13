@@ -37,8 +37,8 @@ jobs:
 
       - name: Validate secrets are configured
         run: |
-          if [[ -z "${{ secrets.ANDROID_KEYSTORE_PATH }}" ]]; then
-            echo "❌ ANDROID_KEYSTORE_PATH secret not configured"
+          if [[ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]]; then
+            echo "❌ ANDROID_KEYSTORE_BASE64 secret not configured"
             exit 1
           fi
           if [[ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ]]; then
@@ -54,6 +54,12 @@ jobs:
             exit 1
           fi
           echo "✅ All required secrets are configured"
+
+      - name: Decode keystore from base64
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > pesopal.keystore
+          echo "✅ Keystore decoded"
+          ls -lh pesopal.keystore
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -81,7 +87,7 @@ jobs:
             -f net10.0-android \
             -c Release \
             -o artifacts/publish \
-            /p:AndroidSigningKeyStore="${{ secrets.ANDROID_KEYSTORE_PATH }}" \
+            /p:AndroidSigningKeyStore="pesopal.keystore" \
             /p:AndroidSigningKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" \
             /p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEY_PASSWORD }}" \
             /p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
