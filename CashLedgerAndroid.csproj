@@ -13,6 +13,8 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
     <AndroidVersionCode>1791878405</AndroidVersionCode>
+    <!-- Suppress CA1416 warnings for Android platform-specific APIs in Android-only project -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <!-- App icon: use pesopal_logo.svg with white background like modern iOS/Android icons -->

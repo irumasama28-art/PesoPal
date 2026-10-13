@@ -13,7 +13,7 @@ namespace CashLedgerAndroid.Platforms.Android.Services;
 
 public class UpdateService : CashLedgerAndroid.Services.IUpdateService
 {
-    readonly Context _context = global::Android.App.Application.Context;
+    readonly Context _context = global::Android.App.Application.Context ?? throw new InvalidOperationException("Application context is null");
     readonly HttpClient _http = new HttpClient();
     readonly CashLedgerAndroid.Services.UpdateState _state;
     private System.Threading.CancellationTokenSource? _cts;
@@ -106,7 +106,9 @@ public class UpdateService : CashLedgerAndroid.Services.IUpdateService
                 var hex = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
                 if (!hex.Equals(info.Sha256, StringComparison.OrdinalIgnoreCase))
                 {
+#pragma warning disable CS8602 // _context is guaranteed non-null from field initializer
                     Toast.MakeText(_context, "Downloaded update failed integrity check.", ToastLength.Long).Show();
+#pragma warning restore CS8602
                     try { _state.NotifyResult("Integrity check failed", false); } catch { }
                     return;
                 }
@@ -126,7 +128,9 @@ public class UpdateService : CashLedgerAndroid.Services.IUpdateService
         }
         catch (Exception ex)
         {
+#pragma warning disable CS8602 // _context is guaranteed non-null from field initializer
             Toast.MakeText(_context, "Update failed: " + ex.Message, ToastLength.Long).Show();
+#pragma warning restore CS8602
             try { _state.SetDownloading(false); _state.NotifyResult("Update failed: " + ex.Message, false); } catch { }
         }
     }
