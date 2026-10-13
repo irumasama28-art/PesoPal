@@ -86,7 +86,9 @@ public class HomePage : ContentPage
             Content = _initials
         };
         top.Add(avatar, 0, 0);
-        top.Add(_store, 1, 0);
+        var ownerLabel = new VerticalStackLayout { Spacing = 6, VerticalOptions = LayoutOptions.Center };
+        ownerLabel.Add(Ui.Text("Administrator", 16, true, Colors.White));
+        top.Add(ownerLabel, 1, 0);
         var chips = new HorizontalStackLayout { Spacing = 10 };
         chips.Add(Pill("Owner"));
         header.Add(top, 0, 0);
