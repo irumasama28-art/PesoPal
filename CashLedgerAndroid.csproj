@@ -15,8 +15,8 @@
     <AndroidVersionCode>1791878405</AndroidVersionCode>
   </PropertyGroup>
   <ItemGroup>
-    <!-- App icon: use adaptive icon layers (background + foreground) to generate Android adaptive launcher icons -->
-    <MauiIcon Include="Resources\AppIcon\appicon_bg.svg" ForegroundFile="Resources\AppIcon\appicon_fg.svg" Color="#0066F0" />
+    <!-- App icon: use pesopal_logo.svg -->
+    <MauiIcon Include="Resources\pesopal_logo.svg" Color="#0057E0" BaseSize="256,256" />
     <!-- Splash: optional custom splash image in Resources/Splash/loading.png if provided -->
     <MauiSplashScreen Include="Resources\Splash\loading.png" Color="#0066F0" BaseSize="200,200" Condition="Exists('Resources\Splash\loading.png')" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0066F0" BaseSize="128,128" />
@@ -25,8 +25,8 @@
     <MauiImage Include="Resources\Images\home_new.svg" />
     <MauiImage Include="Resources\Images\history_new.svg" />
     <MauiImage Include="Resources\Images\settings_new.svg" />
-    <!-- Loading screen logo for animated splash page -->
-    <MauiImage Include="Resources\Images\pesopal_logo.svg" BaseSize="256,256" />
+    <!-- Loading screen logo for animated splash page (reference icon, no resizetize) -->
+    <None Include="Resources\pesopal_logo.svg" LinkBase="Resources\Images" />
   </ItemGroup>
   <ItemGroup>
     <!-- Treat numeric-named image as None to avoid Resizetizer invalid-name checks; it will be copied to valid names during build -->
