@@ -86,10 +86,7 @@ public class HomePage : ContentPage
         var ownerLabel = new VerticalStackLayout { Spacing = 6, VerticalOptions = LayoutOptions.Center };
         ownerLabel.Add(Ui.Text("Administrator", 16, true, Colors.White));
         top.Add(ownerLabel, 1, 0);
-        var chips = new HorizontalStackLayout { Spacing = 10 };
-        chips.Add(Pill("Owner"));
         header.Add(top, 0, 0);
-        header.Add(chips, 0, 1);
 
         // ---- Totals card that overlaps the header ----
         var dateRow = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) } };
@@ -200,18 +197,6 @@ public class HomePage : ContentPage
         page.Add(totalsBlock);
         page.Add(body);
         return new ScrollView { Content = page };
-    }
-
-    private static Border Pill(string text)
-    {
-        return new Border
-        {
-            StrokeThickness = 0,
-            BackgroundColor = Color.FromRgba(255, 255, 255, 50),
-            Padding = new Thickness(14, 8),
-            StrokeShape = new RoundRectangle { CornerRadius = 18 },
-            Content = Ui.Text(text, 13, true, Colors.White)
-        };
     }
 
     private static View LabelWithBadge(string arrow, string text, Color tint, Color ink)
