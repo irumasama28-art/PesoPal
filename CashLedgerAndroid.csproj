@@ -25,8 +25,8 @@
     <MauiImage Include="Resources\Images\home_new.svg" />
     <MauiImage Include="Resources\Images\history_new.svg" />
     <MauiImage Include="Resources\Images\settings_new.svg" />
-    <!-- Loading screen logo for animated splash page (reference icon, no resizetize) -->
-    <None Include="Resources\pesopal_logo.svg" LinkBase="Resources\Images" />
+    <!-- App icon is now the MauiIcon, so exclude from MauiImage -->
+    <MauiImage Remove="Resources\pesopal_logo.svg" />
   </ItemGroup>
   <ItemGroup>
     <!-- Treat numeric-named image as None to avoid Resizetizer invalid-name checks; it will be copied to valid names during build -->
