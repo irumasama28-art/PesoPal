@@ -4,13 +4,8 @@
              x:Class="CashLedgerAndroid.App">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Typography.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Theme.Light.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Theme.Dark.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+            <!-- Style dictionaries are merged in App.xaml.cs to avoid
+                 XAML Source= resolution issues with trimming/AOT -->
         </ResourceDictionary>
     </Application.Resources>
 </Application>
