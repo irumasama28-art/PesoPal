@@ -11,7 +11,7 @@ public partial class App : Application
     /// <summary>
     /// Static reference to the app instance for global access
     /// </summary>
-    public static App? Current { get; private set; }
+    public new static App? Current { get; private set; }
 
     /// <summary>
     /// Static reference to the database instance

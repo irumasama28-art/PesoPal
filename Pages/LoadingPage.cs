@@ -81,8 +81,8 @@ public class LoadingPage : ContentPage
         {
             // Logo entrance (fade + scale)
             await Task.WhenAll(
-                MainThread.InvokeOnMainThreadAsync(() => _logo.FadeTo(1, 600, Easing.SpringOut)),
-                MainThread.InvokeOnMainThreadAsync(() => _logo.ScaleTo(1, 600, Easing.SpringOut))
+                _logo.FadeToAsync(1, 600, Easing.SpringOut),
+                _logo.ScaleToAsync(1, 600, Easing.SpringOut)
             );
 
             // start breathing pulse in background (runs until canceled)
@@ -94,9 +94,9 @@ public class LoadingPage : ContentPage
                 {
                     try
                     {
-                        await MainThread.InvokeOnMainThreadAsync(() => _logo.ScaleTo(1.05, 800, Easing.SinInOut));
+                        await _logo.ScaleToAsync(1.05, 800, Easing.SinInOut);
                         if (ct.IsCancellationRequested) break;
-                        await MainThread.InvokeOnMainThreadAsync(() => _logo.ScaleTo(1.0, 800, Easing.SinInOut));
+                        await _logo.ScaleToAsync(1.0, 800, Easing.SinInOut);
                     }
                     catch { break; }
                 }
@@ -111,9 +111,9 @@ public class LoadingPage : ContentPage
             {
                 while (!cursorToken.IsCancellationRequested)
                 {
-                    try { await MainThread.InvokeOnMainThreadAsync(() => _cursorLabel.FadeTo(1, 120)); } catch { }
+                    try { await _cursorLabel.FadeToAsync(1, 120); } catch { }
                     await Task.Delay(480, cursorToken).ContinueWith(_ => { });
-                    try { await MainThread.InvokeOnMainThreadAsync(() => _cursorLabel.FadeTo(0, 120)); } catch { }
+                    try { await _cursorLabel.FadeToAsync(0, 120); } catch { }
                     await Task.Delay(480, cursorToken).ContinueWith(_ => { });
                 }
             }, cursorToken);
@@ -139,8 +139,8 @@ public class LoadingPage : ContentPage
 
             // Fade in subtitle and spinner
             await Task.WhenAll(
-                MainThread.InvokeOnMainThreadAsync(() => _subtitleLabel.FadeTo(1, 400)),
-                MainThread.InvokeOnMainThreadAsync(() => _spinner.FadeTo(1, 400))
+                _subtitleLabel.FadeToAsync(1, 400),
+                _spinner.FadeToAsync(1, 400)
             );
         }
         catch
@@ -169,7 +169,7 @@ public class LoadingPage : ContentPage
             });
 
             // fade out whole page
-            await MainThread.InvokeOnMainThreadAsync(async () => await this.FadeTo(0, 250));
+            await this.FadeToAsync(0, 250);
         }
         catch
         {
