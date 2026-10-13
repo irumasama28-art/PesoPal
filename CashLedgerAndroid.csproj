@@ -18,7 +18,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- App icon: use pesopal_logo.svg with white background like modern iOS/Android icons -->
-    <MauiIcon Include="Resources\pesopal_logo.svg" Color="#FFFFFF" BaseSize="256,256" />
+    <MauiIcon Include="Resources\Images\pesopal_logo.svg" Color="#FFFFFF" BaseSize="256,256" />
     <!-- Splash: optional custom splash image in Resources/Splash/loading.png if provided -->
     <MauiSplashScreen Include="Resources\Splash\loading.png" Color="#0066F0" BaseSize="200,200" Condition="Exists('Resources\Splash\loading.png')" />
 
@@ -27,7 +27,7 @@
     <MauiImage Include="Resources\Images\history_new.svg" />
     <MauiImage Include="Resources\Images\settings_new.svg" />
     <!-- App icon is now the MauiIcon, so exclude from MauiImage -->
-    <MauiImage Remove="Resources\pesopal_logo.svg" />
+    <MauiImage Remove="Resources\Images\pesopal_logo.svg" />
   </ItemGroup>
   <ItemGroup>
     <!-- Treat numeric-named image as None to avoid Resizetizer invalid-name checks; it will be copied to valid names during build -->

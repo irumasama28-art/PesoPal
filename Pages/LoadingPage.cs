@@ -23,8 +23,14 @@ public class LoadingPage : ContentPage
     public LoadingPage()
     {
         BackgroundColor = Color.FromArgb("#0057E0");
-        // Logo image
-        _logo = new Image { Source = "pesopal_logo.svg", Opacity = 0, Scale = 0.6, HorizontalOptions = LayoutOptions.Center };
+        // Logo image - use ImageSource.FromFile with proper path
+        _logo = new Image 
+        { 
+            Source = ImageSource.FromFile("pesopal_logo.svg"), 
+            Opacity = 0, 
+            Scale = 0.6, 
+            HorizontalOptions = LayoutOptions.Center 
+        };
 
         // Name label (formatted spans)
         var fs = new FormattedString();
