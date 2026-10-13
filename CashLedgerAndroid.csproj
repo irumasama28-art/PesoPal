@@ -12,7 +12,7 @@
     <ApplicationId>com.pesopal.app</ApplicationId>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
-    <AndroidVersionCode>1791820575</AndroidVersionCode>
+    <AndroidVersionCode>1791878405</AndroidVersionCode>
   </PropertyGroup>
   <ItemGroup>
     <!-- App icon: use adaptive icon layers (background + foreground) to generate Android adaptive launcher icons -->
@@ -52,9 +52,6 @@
     <Copy SourceFiles="%(_ProvidedLogo.Identity)" DestinationFiles="Resources\AppIcon\loading.png" SkipUnchangedFiles="true" Condition="Exists('%(_ProvidedLogo.Identity)')" />
     <Copy SourceFiles="%(_ProvidedLogo.Identity)" DestinationFiles="Resources\Splash\loading.png" SkipUnchangedFiles="true" Condition="Exists('%(_ProvidedLogo.Identity)')" />
   </Target>
-  <ItemGroup>
-    <None Include="tools\generate-latest.ps1" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
@@ -78,5 +75,8 @@
     <MauiXaml Update="Resources\Styles\Typography.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="tools\generate-latest.ps1" />
   </ItemGroup>
 </Project>
