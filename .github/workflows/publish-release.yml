@@ -1,4 +1,4 @@
-name: Build and Publish APK
+﻿name: Build and Publish APK
 
 on:
   push:
@@ -24,11 +24,11 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "❌ Invalid tag format: $TAG"
+            echo "âŒ Invalid tag format: $TAG"
             echo "Expected format: vX.Y.Z (e.g., v1.0.0)"
             exit 1
           fi
-          echo "✅ Tag format valid: $TAG"
+          echo "âœ… Tag format valid: $TAG"
 
   build-and-publish:
     name: Build Android APK
@@ -41,27 +41,27 @@ jobs:
       - name: Validate secrets are configured
         run: |
           if [[ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]]; then
-            echo "❌ ANDROID_KEYSTORE_BASE64 secret not configured"
+            echo "âŒ ANDROID_KEYSTORE_BASE64 secret not configured"
             exit 1
           fi
           if [[ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ]]; then
-            echo "❌ ANDROID_KEY_ALIAS secret not configured"
+            echo "âŒ ANDROID_KEY_ALIAS secret not configured"
             exit 1
           fi
           if [[ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]]; then
-            echo "❌ ANDROID_KEY_PASSWORD secret not configured"
+            echo "âŒ ANDROID_KEY_PASSWORD secret not configured"
             exit 1
           fi
           if [[ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ]]; then
-            echo "❌ ANDROID_KEYSTORE_PASSWORD secret not configured"
+            echo "âŒ ANDROID_KEYSTORE_PASSWORD secret not configured"
             exit 1
           fi
-          echo "✅ All required secrets are configured"
+          echo "âœ… All required secrets are configured"
 
       - name: Decode keystore from base64
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > pesopal.keystore
-          echo "✅ Keystore decoded"
+          echo "âœ… Keystore decoded"
           ls -lh pesopal.keystore
 
       - name: Setup .NET
@@ -88,7 +88,7 @@ jobs:
 
       - name: Build Android APK
         run: |
-          echo "🔨 Building Android APK for release ${{ github.ref_name }}"
+          echo "ðŸ”¨ Building Android APK for release ${{ github.ref_name }}"
           dotnet publish CashLedgerAndroid.slnx \
             -f net10.0-android \
             -c Release \
@@ -100,12 +100,12 @@ jobs:
 
       - name: Verify APK was created
         run: |
-          echo "📦 Checking for APK artifacts..."
+          echo "ðŸ“¦ Checking for APK artifacts..."
           if ls artifacts/publish/*.apk 1> /dev/null 2>&1; then
-            echo "✅ APK found:"
+            echo "âœ… APK found:"
             ls -lh artifacts/publish/*.apk
           else
-            echo "❌ No APK file found in artifacts/publish"
+            echo "âŒ No APK file found in artifacts/publish"
             echo "Directory contents:"
             ls -la artifacts/publish
             exit 1
@@ -131,9 +131,9 @@ jobs:
 
       - name: Generate latest.json
         run: |
-          echo "📝 Generating latest.json..."
+          echo "ðŸ“ Generating latest.json..."
           mkdir -p gh-pages
-          pwsh -NoProfile -NonInteractive -File tools/generate-latest.ps1 \
+          pwsh -NoProfile -NonInteractive -File Tools/generate-latest.ps1 \
             -Tag ${{ github.ref_name }} \
             -AssetPath artifacts/publish/*.apk \
             -Repo irumasama28-art/PesoPal \
@@ -150,8 +150,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "📤 Pushing latest.json to gh-pages branch..."
-          pwsh -NoProfile -NonInteractive -File tools/generate-latest.ps1 \
+          echo "ðŸ“¤ Pushing latest.json to gh-pages branch..."
+          pwsh -NoProfile -NonInteractive -File Tools/generate-latest.ps1 \
             -Tag ${{ github.ref_name }} \
             -AssetPath artifacts/publish/*.apk \
             -Repo irumasama28-art/PesoPal \
@@ -162,15 +162,15 @@ jobs:
       - name: Release Summary
         if: success()
         run: |
-          echo "✅ Release ${{ github.ref_name }} completed successfully!"
+          echo "âœ… Release ${{ github.ref_name }} completed successfully!"
           echo ""
-          echo "📍 Release URL: https://github.com/irumasama28-art/PesoPal/releases/tag/${{ github.ref_name }}"
-          echo "📝 latest.json URL: https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json"
+          echo "ðŸ“ Release URL: https://github.com/irumasama28-art/PesoPal/releases/tag/${{ github.ref_name }}"
+          echo "ðŸ“ latest.json URL: https://raw.githubusercontent.com/irumasama28-art/PesoPal/gh-pages/latest.json"
 
       - name: Release Failed
         if: failure()
         run: |
-          echo "❌ Release ${{ github.ref_name }} failed!"
+          echo "âŒ Release ${{ github.ref_name }} failed!"
           echo ""
           echo "Check the logs above for error details"
           exit 1
