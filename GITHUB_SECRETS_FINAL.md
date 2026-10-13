@@ -1,0 +1,78 @@
+# ✅ FINAL GitHub Secrets - Ready to Add
+
+## Updated Keystore Information
+
+**Status**: ✅ Generated with password "Francis"
+**Validity**: 10,000 days (expires ~2043)
+**Algorithm**: RSA 2048-bit
+**Date Created**: $(date)
+
+## Secrets to Add to GitHub
+
+Navigate to: **https://github.com/irumasama28-art/PesoPal/settings/secrets/actions**
+
+Then click **"New repository secret"** and add these 4 secrets:
+
+### 1. ANDROID_KEYSTORE_BASE64
+
+**Name**: `ANDROID_KEYSTORE_BASE64`
+
+**Value**: (Copy the entire base64 string from keystore-base64.txt - it's a single long line)
+
+```
+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
+```
+
+### 2. ANDROID_KEY_ALIAS
+
+**Name**: `ANDROID_KEY_ALIAS`
+
+**Value**: `pesopal`
+
+### 3. ANDROID_KEY_PASSWORD
+
+**Name**: `ANDROID_KEY_PASSWORD`
+
+**Value**: `Francis`
+
+### 4. ANDROID_KEYSTORE_PASSWORD
+
+**Name**: `ANDROID_KEYSTORE_PASSWORD`
+
+**Value**: `Francis`
+
+## Next Steps
+
+1. **Go to GitHub Settings**
+   - Link: https://github.com/irumasama28-art/PesoPal/settings/secrets/actions
+
+2. **Add/Update All 4 Secrets**
+   - Copy the values exactly as shown above
+   - Paste into the GitHub Secrets form
+
+3. **Workflow Auto-Triggers**
+   - Once all secrets are added, the v1.0.0 tag will trigger the workflow
+   - Monitor at: https://github.com/irumasama28-art/PesoPal/actions
+
+4. **Release Completion**
+   - APK will be uploaded to GitHub Release
+   - latest.json will be pushed to gh-pages
+   - Release ready for distribution
+
+## Local Files
+
+- ✅ `pesopal.keystore` - Android signing keystore (not committed)
+- ✅ `keystore-base64.txt` - Base64 encoded keystore (updated)
+
+## Security Notes
+
+⚠️ **Important**:
+- Never commit `pesopal.keystore` or `keystore-base64.txt` to the repository
+- Treat these like private keys
+- Rotate credentials regularly in production
+- Never share passwords via email or chat
+
+---
+
+**Status**: ✅ Ready for secrets to be added
+**Expected Time to Release**: ~15 minutes (2 min to add secrets + 5-10 min workflow + buffering)
