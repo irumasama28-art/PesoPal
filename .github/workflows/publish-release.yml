@@ -66,6 +66,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Install .NET MAUI Android workload
+        run: dotnet workload install maui-android
+
       - name: Install Java (required by Android build)
         uses: actions/setup-java@v4
         with:
