@@ -1,7 +1,7 @@
 {
-  "versionCode": 1791865497,
-  "sha256": "db53760e7c85455875265e3f91d6ef9dcdecaadd1d603a89c3406df9375f26bf",
-  "apkUrl": "https://github.com/irumasama28-art/PesoPal/releases/download/v1.1.0/com.pesopal.app-Signed.apk",
-  "versionName": "v1.1.0",
-  "buildTime": "2026-10-13T04:24:56.9020933+00:00"
+  "buildTime": "2026-10-13T04:37:09.0376015+00:00",
+  "sha256": "8db512b6e93778a291cf62c6ded9f8822c8cd9ab4a57af736343ed1cfc506715",
+  "apkUrl": "https://github.com/irumasama28-art/PesoPal/releases/download/v1.1.1/com.pesopal.app-Signed.apk",
+  "versionName": "v1.1.1",
+  "versionCode": 1791866229
 }
