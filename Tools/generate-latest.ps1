@@ -96,7 +96,12 @@ if ($Push) {
 	git config --global user.name "GitHub Actions"
 	Write-Log "Configured git user"
 
-	$repoUrl = "https://github.com/$Repo.git"
+	$token = $env:GITHUB_TOKEN
+        if ([string]::IsNullOrEmpty($token)) {
+                Write-Error-Log "GITHUB_TOKEN env var not set - cannot authenticate git push"
+                exit 2
+        }
+        $repoUrl = "https://x-access-token:$token@github.com/$Repo.git"
 	$work = Join-Path -Path (Get-Location) -ChildPath "gh-pages-work"
 
 	if (Test-Path $work) {
