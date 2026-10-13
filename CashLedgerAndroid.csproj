@@ -15,8 +15,8 @@
     <AndroidVersionCode>1791878405</AndroidVersionCode>
   </PropertyGroup>
   <ItemGroup>
-    <!-- App icon: use pesopal_logo.svg -->
-    <MauiIcon Include="Resources\pesopal_logo.svg" Color="#0057E0" BaseSize="256,256" />
+    <!-- App icon: use pesopal_logo.svg with white background like modern iOS/Android icons -->
+    <MauiIcon Include="Resources\pesopal_logo.svg" Color="#FFFFFF" BaseSize="256,256" />
     <!-- Splash: optional custom splash image in Resources/Splash/loading.png if provided -->
     <MauiSplashScreen Include="Resources\Splash\loading.png" Color="#0066F0" BaseSize="200,200" Condition="Exists('Resources\Splash\loading.png')" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0066F0" BaseSize="128,128" />
