@@ -156,8 +156,7 @@ jobs:
             -AssetPath artifacts/publish/*.apk \
             -Repo irumasama28-art/PesoPal \
             -Branch gh-pages \
-            -Push \
-            -UploadRelease
+            -Push
 
       - name: Release Summary
         if: success()
