@@ -37,7 +37,8 @@ public class UpdateService : CashLedgerAndroid.Services.IUpdateService
             string? sha = null;
             if (root.TryGetProperty("sha256", out var shaProp)) sha = shaProp.GetString();
 
-            var pkg = _context.PackageManager.GetPackageInfo(_context.PackageName, 0);
+            var pkg = _context.PackageManager?.GetPackageInfo(_context.PackageName ?? string.Empty, 0);
+            if (pkg == null) return null;
             var current = pkg.LongVersionCode; // versionCode on Android
             if (versionCode > current)
             {
@@ -115,7 +116,9 @@ public class UpdateService : CashLedgerAndroid.Services.IUpdateService
             var apkUri = AndroidX.Core.Content.FileProvider.GetUriForFile(_context, _context.PackageName + ".fileprovider", dest);
 
             // Launch installer intent
+#pragma warning disable CA1422
             var intent = new Intent(Intent.ActionInstallPackage);
+#pragma warning restore CA1422
             intent.SetData(apkUri);
             intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
             _context.StartActivity(intent);

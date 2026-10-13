@@ -20,8 +20,6 @@ public class ErrorPage : ContentPage
                 await db.InitializeAsync();
                 if (Application.Current?.Windows?.Count > 0)
                     Application.Current.Windows[0].Page = new AppShell(db);
-                else if (Application.Current != null)
-                    Application.Current.MainPage = new AppShell(db);
             }
             catch (Exception ex)
             {

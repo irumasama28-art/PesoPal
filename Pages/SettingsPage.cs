@@ -192,7 +192,7 @@ public class SettingsPage : ContentPage
                 // show cancel option
                 var task = updater.StartUpdateAsync(info);
                 // display a cancel option while downloading
-                var cancel = await DisplayActionSheet("Downloading update", "Dismiss", null, "Cancel download");
+                var cancel = await DisplayActionSheetAsync("Downloading update", "Dismiss", null, "Cancel download");
                 if (cancel == "Cancel download")
                 {
                     try { await updater.CancelCurrentUpdateAsync(); } catch { }
