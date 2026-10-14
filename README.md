@@ -1,4 +1,4 @@
-# Cash Ledger (Android, .NET 8 MAUI)
+# Cash Ledger (Android, .NET 10 MAUI)
 
 Offline cash-in / cash-out ledger. Records stay on the phone (SQLite). No internet permission, no accounts, no PIN.
 
