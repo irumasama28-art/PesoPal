@@ -6,9 +6,7 @@ public class AppSettings
 {
     [PrimaryKey]
     public int Id { get; set; } = 1;
-    public string StoreName { get; set; } = "My Cash Store";
-
-    // Theme preference: "light", "dark", or "system"
+    // Legacy database column retained for compatibility; the app now uses Light only.
     public string ThemeMode { get; set; } = "light";
 
     // Editable default fee bands; values are defaults and can be changed in Settings > Fee table.

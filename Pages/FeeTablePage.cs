@@ -22,7 +22,7 @@ public class FeeTablePage : ContentPage
     {
         _db = db;
         Title = "Fee table";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
 
         var rows = new VerticalStackLayout { Spacing = 0 };
         for (var i = 0; i < _entries.Length; i++)

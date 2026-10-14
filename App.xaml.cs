@@ -35,15 +35,10 @@ public partial class App : Application
         Current = this;
         Database = database;
 
-        // Merge style dictionaries from code-behind.
-        // This avoids the "Source can only be set from XAML" error that
-        // occurs when trimming/AOT strips dynamically-resolved resources
-        // in the release build.
+        // Merge compiled style dictionaries from code-behind.
         Resources.MergedDictionaries.Add(new Resources.Styles.Colors());
         Resources.MergedDictionaries.Add(new Resources.Styles.Typography());
         Resources.MergedDictionaries.Add(new Resources.Styles.Styles());
-        Resources.MergedDictionaries.Add(new Resources.Styles.Theme_Light());
-        Resources.MergedDictionaries.Add(new Resources.Styles.Theme_Dark());
 
         // Start initialization in background; CreateWindow will provide the initial loading window.
         _ = InitializeAppAsync(database);

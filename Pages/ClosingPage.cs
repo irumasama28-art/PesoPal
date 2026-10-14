@@ -35,7 +35,7 @@ public class ClosingPage : ContentPage
     {
         _db = db;
         Title = "Close the day";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
 
         var cashNote = Ui.Note("info", "Enter what you counted.");
         _cashNote = cashNote.Item1;
@@ -70,7 +70,7 @@ public class ClosingPage : ContentPage
         wallet.Add(_walletNote);
         page.Add(Ui.Card(wallet, 20, new Thickness(16)));
 
-        page.Add(Ui.Primary("Share summary", Pal.Blue, ShareSummaryAsync));
+        page.Add(Ui.Primary("Close the day", Pal.Blue, CloseDayAsync));
         Content = new ScrollView { Content = page };
     }
 
@@ -91,7 +91,8 @@ public class ClosingPage : ContentPage
         try
         {
             var all = await _db.GetTransactionsAsync();
-            var today = all.Where(t => !t.IsVoided && t.CreatedAt.Date == DateTime.Today).ToList();
+            var businessDayStart = _db.GetBusinessDayStart();
+            var today = all.Where(t => !t.IsVoided && t.CreatedAt >= businessDayStart).ToList();
             _inCount = 0; _outCount = 0; _inAmount = 0; _outAmount = 0; _fees = 0; _cashChange = 0; _walletChange = 0;
             foreach (var t in today)
             {
@@ -157,22 +158,17 @@ public class ClosingPage : ContentPage
             Ui.StyleNote(note, label, "warn", "Over by " + Fmt.Money(diff) + ". Check for a transaction recorded with the wrong amount.");
     }
 
-    private async Task ShareSummaryAsync()
+    private async Task CloseDayAsync()
     {
-        var sb = new StringBuilder();
-        sb.AppendLine("Daily closing · " + DateTime.Now.ToString("MMM d, yyyy", Fmt.Inv));
-        sb.AppendLine("Cash-in: " + _inCount + " · " + Fmt.Money(_inAmount));
-        sb.AppendLine("Cash-out: " + _outCount + " · " + Fmt.Money(_outAmount));
-        sb.AppendLine("Fees earned: " + Fmt.Money(_fees));
-        sb.AppendLine("Cash expected: " + _expectedCash.Text + " · " + _cashNoteLabel.Text);
-        sb.AppendLine("GCash expected: " + _expectedWallet.Text + " · " + _walletNoteLabel.Text);
-        try
-        {
-            await Share.Default.RequestAsync(new ShareTextRequest { Title = "Daily closing summary", Text = sb.ToString() });
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("Could not share", ex.Message, "OK");
-        }
+        var closeConfirmed = await DisplayAlertAsync(
+            "Close the day",
+            "Today's dashboard totals will reset to zero. Your transactions will remain in History.",
+            "Close day",
+            "Cancel");
+        if (!closeConfirmed) return;
+
+        _db.CloseBusinessDay();
+        await DisplayAlertAsync("Day closed", "Today's totals have been reset. Your transaction history is preserved.", "OK");
+        await Navigation.PopAsync();
     }
 }

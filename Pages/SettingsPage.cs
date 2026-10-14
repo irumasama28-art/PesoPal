@@ -1,4 +1,3 @@
-using CashLedgerAndroid.Models;
 using CashLedgerAndroid.Services;
 using CashLedgerAndroid.Views;
 
@@ -8,6 +7,9 @@ public class SettingsPage : ContentPage
 {
     private readonly LedgerDatabase _db;
     private readonly CashLedgerAndroid.Services.IUpdateService? _updater;
+    private readonly Action _dataChangedHandler;
+    private readonly Action? _stateChangedHandler;
+    private bool _isSubscribed;
     private View? _updateRowView;
     private readonly string _metadataUrl = "https://raw.githubusercontent.com/Synonymz/PesoPal/gh-pages/latest.json";
     private readonly VerticalStackLayout _content = new VerticalStackLayout { Spacing = 8, Padding = new Thickness(16, 14, 16, 24) };
@@ -19,8 +21,12 @@ public class SettingsPage : ContentPage
         _db = db;
         _updater = updater;
         _state = MauiProgram.Services?.GetService(typeof(UpdateState)) as UpdateState;
+        _dataChangedHandler = () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
+        _stateChangedHandler = _state is null
+            ? null
+            : () => MainThread.BeginInvokeOnMainThread(() => OnUpdateStateChanged());
         Title = "Settings";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
         Shell.SetNavBarIsVisible(this, false);
 
         var header = new Grid { BackgroundColor = Pal.BlueDark, Padding = new Thickness(18, 22) };
@@ -40,17 +46,33 @@ public class SettingsPage : ContentPage
         root.Add(_progressOverlay, 0, 1);
 
         Content = root;
-        _db.DataChanged += () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
-        if (_state is not null)
-        {
-            _state.StateChanged += () => MainThread.BeginInvokeOnMainThread(() => OnUpdateStateChanged());
-        }
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (!_isSubscribed)
+        {
+            _db.DataChanged += _dataChangedHandler;
+            if (_state is not null && _stateChangedHandler is not null)
+                _state.StateChanged += _stateChangedHandler;
+            _isSubscribed = true;
+        }
+
         await RefreshAsync();
+    }
+
+    protected override void OnDisappearing()
+    {
+        if (_isSubscribed)
+        {
+            _db.DataChanged -= _dataChangedHandler;
+            if (_state is not null && _stateChangedHandler is not null)
+                _state.StateChanged -= _stateChangedHandler;
+            _isSubscribed = false;
+        }
+
+        base.OnDisappearing();
     }
 
     private static Label SectionLabel(string text)
@@ -75,17 +97,11 @@ public class SettingsPage : ContentPage
     {
         try
         {
-            var settings = await _db.GetSettingsAsync();
             var last = LedgerDatabase.LastBackupText();
             _content.Clear();
             _content.Add(SectionLabel("Store"));
             _content.Add(Group(
-                Ui.SettingRow("Store name", settings.StoreName, RenameStoreAsync),
                 Ui.SettingRow("Fee table", "6 bands", OpenFeesAsync)));
-
-            _content.Add(SectionLabel("Appearance"));
-            _content.Add(Group(
-                CreateThemeSelector()));
 
             _content.Add(SectionLabel("Daily work"));
             _content.Add(Group(
@@ -144,16 +160,6 @@ public class SettingsPage : ContentPage
         {
             await DisplayAlertAsync("Could not load settings", ex.Message, "OK");
         }
-    }
-
-    private async Task RenameStoreAsync()
-    {
-        var settings = await _db.GetSettingsAsync();
-        var name = await DisplayPromptAsync("Store name", "What is your store called?", "Save", "Cancel",
-            initialValue: settings.StoreName, maxLength: 80);
-        if (name is null) return;
-        settings.StoreName = string.IsNullOrWhiteSpace(name) ? "My Cash Store" : name.Trim();
-        await _db.SaveSettingsAsync(settings);
     }
 
     private Task OpenFeesAsync() => Navigation.PushAsync(new FeeTablePage(_db));
@@ -273,60 +279,4 @@ public class SettingsPage : ContentPage
         }
     }
 
-    /// <summary>
-    /// Create a theme selector row with picker
-    /// </summary>
-    private View CreateThemeSelector()
-    {
-        var themeService = App.ThemeService;
-        var currentTheme = themeService?.GetCurrentTheme() ?? "light";
-
-        var grid = new Grid
-        {
-            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-            RowDefinitions = { new RowDefinition(GridLength.Auto) },
-            Padding = new Thickness(16, 12),
-            ColumnSpacing = 12,
-            BackgroundColor = Pal.Bg
-        };
-
-        var label = Ui.Text("Theme", 16, false, Pal.Navy);
-        label.VerticalOptions = LayoutOptions.Center;
-        grid.Add(label, 0, 0);
-
-        // Create a simple picker for theme selection
-        var picker = new Picker
-        {
-            Title = "Select theme",
-            BackgroundColor = Pal.Bg,
-            TextColor = Pal.Navy,
-            ItemsSource = new List<string> { "Light", "Dark", "System" },
-            SelectedIndex = currentTheme switch
-            {
-                "dark" => 1,
-                "system" => 2,
-                _ => 0
-            },
-            HorizontalOptions = LayoutOptions.End,
-            VerticalOptions = LayoutOptions.Center
-        };
-
-        picker.SelectedIndexChanged += (s, e) =>
-        {
-            var selectedTheme = picker.SelectedIndex switch
-            {
-                1 => "dark",
-                2 => "system",
-                _ => "light"
-            };
-
-            if (themeService != null)
-            {
-                themeService.ApplyTheme(selectedTheme);
-            }
-        };
-
-        grid.Add(picker, 1, 0);
-        return grid;
-    }
 }

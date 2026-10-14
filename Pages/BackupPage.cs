@@ -17,7 +17,7 @@ public class BackupPage : ContentPage
     {
         _db = db;
         Title = "Backup and restore";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
 
         var status = Ui.Note("bad", "No backup yet. If this phone is lost, reset or the app is uninstalled, every record is gone.");
         _statusBox = status.Item1;

@@ -6,6 +6,7 @@ namespace CashLedgerAndroid.Services;
 
 public class LedgerDatabase
 {
+    private const string BusinessDayClosedAtKey = "business_day_closed_at";
     private SQLiteAsyncConnection _db;
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
     private bool _initialized;
@@ -110,6 +111,22 @@ public class LedgerDatabase
         var rows = await _db.UpdateAsync(settings);
         Changed();
         return rows;
+    }
+
+    public DateTime GetBusinessDayStart()
+    {
+        var today = DateTime.Today;
+        var closedAtText = Preferences.Default.Get(BusinessDayClosedAtKey, string.Empty);
+        return DateTime.TryParse(closedAtText, null, System.Globalization.DateTimeStyles.RoundtripKind, out var closedAt)
+            && closedAt.Date == today
+                ? closedAt
+                : today;
+    }
+
+    public void CloseBusinessDay()
+    {
+        Preferences.Default.Set(BusinessDayClosedAtKey, DateTime.Now.ToString("o", Fmt.Inv));
+        Changed();
     }
 
     // ---- Backup and restore ----

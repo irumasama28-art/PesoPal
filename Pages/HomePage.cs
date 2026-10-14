@@ -8,9 +8,11 @@ namespace CashLedgerAndroid.Pages;
 public class HomePage : ContentPage
 {
     private readonly LedgerDatabase _db;
+    private readonly Action _dataChangedHandler;
+    private bool _isSubscribed;
     private List<TransactionRecord> _all = new List<TransactionRecord>();
 
-    private readonly Label _initials = Ui.Text("MC", 18, true, Colors.White, TextAlignment.Center);
+    private readonly Label _initials = Ui.Text("AD", 18, true, Colors.White, TextAlignment.Center);
     private readonly Label _date = Ui.Text("", 14, false, Pal.Muted, TextAlignment.End);
     private readonly Label _fees = Ui.Text("₱0", 42, true);
     private readonly Label _inTotal = Ui.Text("₱0", 22, true);
@@ -24,16 +26,22 @@ public class HomePage : ContentPage
     public HomePage(LedgerDatabase db)
     {
         _db = db;
+        _dataChangedHandler = () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
         Title = "Home";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
         Shell.SetNavBarIsVisible(this, false);
         Content = BuildLayout();
-        _db.DataChanged += () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (!_isSubscribed)
+        {
+            _db.DataChanged += _dataChangedHandler;
+            _isSubscribed = true;
+        }
+
         // Fade-in animation for a polished entrance
         try
         {
@@ -51,6 +59,17 @@ public class HomePage : ContentPage
         catch { }
 
         await RefreshAsync();
+    }
+
+    protected override void OnDisappearing()
+    {
+        if (_isSubscribed)
+        {
+            _db.DataChanged -= _dataChangedHandler;
+            _isSubscribed = false;
+        }
+
+        base.OnDisappearing();
     }
 
     private View BuildLayout()
@@ -130,6 +149,7 @@ public class HomePage : ContentPage
             StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(24, 24, 0, 0) },
             Content = totalsStack
         };
+        totalsCard.SetDynamicResource(VisualElement.BackgroundColorProperty, "CardBackgroundColor");
 
         // Torn-receipt edge under the card
         var points = new PointCollection();
@@ -147,6 +167,8 @@ public class HomePage : ContentPage
             HeightRequest = 10,
             HorizontalOptions = LayoutOptions.Fill
         };
+        if (zigzag.Fill is SolidColorBrush zigzagBrush)
+            zigzagBrush.SetDynamicResource(SolidColorBrush.ColorProperty, "CardBackgroundColor");
 
         var totalsBlock = new VerticalStackLayout { Spacing = 0, Margin = new Thickness(0, -62, 0, 0) };
         totalsBlock.Add(totalsCard);
@@ -176,14 +198,10 @@ public class HomePage : ContentPage
         _recentSection.Add(Ui.Card(_recent, 20, new Thickness(14, 0)));
 
         // ---- Welcome card, shown until the first transaction ----
-        _welcome.Add(Ui.Text("Welcome. Let's set up your store.", 20, true));
-        _welcome.Add(Ui.Text("Two quick steps before your first transaction.", 13, false, Pal.Muted));
+        _welcome.Add(Ui.Text("Welcome to PesoPal.", 20, true));
+        _welcome.Add(Ui.Text("Review your fee table before your first transaction.", 13, false, Pal.Muted));
         var steps = new VerticalStackLayout { Spacing = 0 };
-        // Keep a reference to the rename step so we can hide it once the store name is set.
-        var renameStep = StepRow("1", "Name your store", "Set", RenameStoreAsync);
-        steps.Add(renameStep);
-        steps.Add(Ui.Divider());
-        steps.Add(StepRow("2", "Check your fee table", "Review", OpenFeesAsync));
+        steps.Add(StepRow("1", "Check your fee table", "Review", OpenFeesAsync));
         _welcome.Add(Ui.Card(steps, 20, new Thickness(16, 2)));
         _welcome.Add(Ui.Text("Your records stay on this phone. No account or internet needed.", 12, false, Pal.Muted, TextAlignment.Center));
 
@@ -337,35 +355,17 @@ public class HomePage : ContentPage
         await Navigation.PushAsync(new FeeTablePage(_db));
     }
 
-    private async Task RenameStoreAsync()
-    {
-        var settings = await _db.GetSettingsAsync();
-        var name = await DisplayPromptAsync("Store name", "What is your store called?", "Save", "Cancel",
-            initialValue: settings.StoreName, maxLength: 80);
-        if (name is null) return;
-        settings.StoreName = string.IsNullOrWhiteSpace(name) ? "My Cash Store" : name.Trim();
-        await _db.SaveSettingsAsync(settings);
-    }
-
-    private static string InitialsOf(string name)
-    {
-        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "CL";
-        if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpperInvariant();
-        return (parts[0].Substring(0, 1) + parts[1].Substring(0, 1)).ToUpperInvariant();
-    }
-
     public async Task RefreshAsync()
     {
         try
         {
-            var settings = await _db.GetSettingsAsync();
             _all = await _db.GetTransactionsAsync();
 
-            _initials.Text = InitialsOf(settings.StoreName);
+            _initials.Text = "AD";
             _date.Text = DateTime.Now.ToString("MMM d, yyyy", Fmt.Inv);
 
-            var today = _all.Where(t => !t.IsVoided && t.CreatedAt.Date == DateTime.Today).ToList();
+            var businessDayStart = _db.GetBusinessDayStart();
+            var today = _all.Where(t => !t.IsVoided && t.CreatedAt >= businessDayStart).ToList();
             var ins = today.Where(t => t.IsCashIn).ToList();
             var outs = today.Where(t => !t.IsCashIn).ToList();
             _fees.Text = Fmt.MoneyShort(today.Sum(t => t.Fee));
@@ -382,22 +382,6 @@ public class HomePage : ContentPage
                 if (i < latest.Count - 1) _recent.Add(Ui.Divider());
             }
             _welcome.IsVisible = _all.Count == 0;
-            // Hide the rename step if the store name has been customized.
-            try
-            {
-                // settings is already loaded above
-                // If user changed from default placeholder, hide the "Name your store" step
-                var stepsCard = _welcome.Children.OfType<Border>().FirstOrDefault();
-                if (stepsCard?.Content is VerticalStackLayout vs && vs.Children.Count > 0)
-                {
-                    // first child is rename step
-                    if (vs.Children[0] is Grid renameGrid)
-                    {
-                        renameGrid.IsVisible = settings.StoreName == "My Cash Store";
-                    }
-                }
-            }
-            catch { }
             _recentSection.IsVisible = _all.Count > 0;
         }
         catch (Exception ex)

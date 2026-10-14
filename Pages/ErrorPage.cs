@@ -9,7 +9,7 @@ public class ErrorPage : ContentPage
     public ErrorPage(LedgerDatabase db, string message)
     {
         Title = "Error";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
         var label = new Label { Text = "There was a problem starting the app.", FontAttributes = FontAttributes.Bold, HorizontalOptions = LayoutOptions.Center };
         var details = new Label { Text = message, FontSize = 12, TextColor = Pal.Muted, HorizontalOptions = LayoutOptions.Center, LineBreakMode = LineBreakMode.TailTruncation };
         var retry = new Button { Text = "Retry", HorizontalOptions = LayoutOptions.Center };

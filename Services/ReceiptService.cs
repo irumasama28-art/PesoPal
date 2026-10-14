@@ -47,7 +47,7 @@ public static class ReceiptService
         sb.Append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">");
         sb.Append("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"color-scheme\" content=\"light\">");
         sb.Append("<title>Cash Ledger Receipt TX-").Append(t.Id.ToString("000000")).Append("</title><style>").Append(Css).Append("</style></head><body>");
-        sb.Append("<article class=\"receipt\"><header class=\"top\"><h1>").Append(H(settings.StoreName)).Append("</h1>");
+        sb.Append("<article class=\"receipt\"><header class=\"top\"><h1>PesoPal</h1>");
         sb.Append("<div class=\"subtitle\">CASH TRANSACTION RECEIPT</div></header><main class=\"body\">");
         sb.Append("<div style=\"text-align:center\"><div class=\"badge\" style=\"").Append(badgeColors).Append("\">");
         sb.Append(H(t.Type.ToUpperInvariant())).Append(" · ").Append(status).Append("</div></div>");

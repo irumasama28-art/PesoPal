@@ -39,7 +39,7 @@ public class EntryPage : ContentPage
         _existing = existing;
         _type = existing?.Type ?? type;
         Title = existing is null ? "New transaction" : "Edit TX-" + existing.Id.ToString("000000");
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
 
         _amount = new Entry
         {
@@ -197,12 +197,13 @@ public class EntryPage : ContentPage
         var summaryStack = new VerticalStackLayout { Spacing = 4 };
         summaryStack.Add(summaryGrid);
         summaryStack.Add(_summaryNote);
-        form.Add(Ui.Card(summaryStack, 14, new Thickness(14, 12), Color.FromArgb("#F2F8FF")));
+        form.Add(Ui.Card(summaryStack, 14, new Thickness(14, 12)));
 
         root.Add(new ScrollView { Content = form }, 0, 1);
 
         // Save bar
         var bar = new VerticalStackLayout { Padding = new Thickness(16, 10, 16, 14), BackgroundColor = Colors.White };
+        bar.SetDynamicResource(VisualElement.BackgroundColorProperty, "CardBackgroundColor");
         bar.Add(_save);
         root.Add(bar, 0, 2);
         return root;

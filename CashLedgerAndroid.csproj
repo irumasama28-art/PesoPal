@@ -10,24 +10,22 @@
     <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
     <ApplicationTitle>PesoPal</ApplicationTitle>
     <ApplicationId>com.pesopal.app</ApplicationId>
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
-    <AndroidVersionCode>1791878405</AndroidVersionCode>
+    <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
+    <ApplicationVersion>2</ApplicationVersion>
+    <AndroidVersionCode>1791878406</AndroidVersionCode>
     <!-- Suppress CA1416 warnings for Android platform-specific APIs in Android-only project -->
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- App icon: use pesopal_logo.svg with white background like modern iOS/Android icons -->
-    <MauiIcon Include="Resources\Images\pesopal_logo.svg" Color="#FFFFFF" BaseSize="256,256" />
-    <!-- Splash: optional custom splash image in Resources/Splash/loading.png if provided -->
-    <MauiSplashScreen Include="Resources\Splash\loading.png" Color="#0066F0" BaseSize="200,200" Condition="Exists('Resources\Splash\loading.png')" />
+    <!-- Android launcher icon -->
+    <MauiIcon Include="Resources\appiconfg.svg" Color="#FFFFFF" BaseSize="256,256" />
+    <MauiSplashScreen Include="Resources\pesopal_logo.svg" Color="#0057E0" BaseSize="256,256" />
 
     <!-- Ensure the tab icons are explicitly included so the resizetizer processes them -->
     <MauiImage Include="Resources\Images\home_new.svg" />
     <MauiImage Include="Resources\Images\history_new.svg" />
     <MauiImage Include="Resources\Images\settings_new.svg" />
-    <!-- App icon is now the MauiIcon, so exclude from MauiImage -->
-    <MauiImage Remove="Resources\Images\pesopal_logo.svg" />
+    <MauiImage Include="Resources\Images\pesopal_loading.svg" />
   </ItemGroup>
   <ItemGroup>
     <!-- Treat numeric-named image as None to avoid Resizetizer invalid-name checks; it will be copied to valid names during build -->
@@ -65,9 +63,6 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Resources\Styles\Styles.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Resources\Styles\Theme.Dark.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Resources\Styles\Theme.Light.xaml">

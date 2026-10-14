@@ -10,6 +10,8 @@ namespace CashLedgerAndroid.Pages;
 public class HistoryPage : ContentPage
 {
     private readonly LedgerDatabase _db;
+    private readonly Action _dataChangedHandler;
+    private bool _isSubscribed;
     private List<TransactionRecord> _all = new List<TransactionRecord>();
     private string _filter = "All";
     private readonly Entry _search;
@@ -19,8 +21,9 @@ public class HistoryPage : ContentPage
     public HistoryPage(LedgerDatabase db)
     {
         _db = db;
+        _dataChangedHandler = () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
         Title = "History";
-        BackgroundColor = Pal.Bg;
+        SetDynamicResource(BackgroundColorProperty, "PageBackgroundColor");
         Shell.SetNavBarIsVisible(this, false);
 
         _search = new Entry
@@ -31,11 +34,12 @@ public class HistoryPage : ContentPage
             FontSize = 14,
             BackgroundColor = Colors.Transparent
         };
+        _search.SetDynamicResource(Entry.TextColorProperty, "PrimaryTextColor");
+        _search.SetDynamicResource(Entry.PlaceholderColorProperty, "HintTextColor");
         _search.TextChanged += (_, _) => Render();
 
         Content = BuildLayout();
         RenderChips();
-        _db.DataChanged += () => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
     }
 
     private View BuildLayout()
@@ -84,7 +88,24 @@ public class HistoryPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (!_isSubscribed)
+        {
+            _db.DataChanged += _dataChangedHandler;
+            _isSubscribed = true;
+        }
+
         await RefreshAsync();
+    }
+
+    protected override void OnDisappearing()
+    {
+        if (_isSubscribed)
+        {
+            _db.DataChanged -= _dataChangedHandler;
+            _isSubscribed = false;
+        }
+
+        base.OnDisappearing();
     }
 
     public async Task RefreshAsync()

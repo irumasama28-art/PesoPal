@@ -5,12 +5,12 @@ namespace CashLedgerAndroid.Views;
 // Colour palette used across all screens.
 public static class Pal
 {
-    public static readonly Color Blue = Color.FromArgb("#0066F0");
-    public static readonly Color BlueDark = Color.FromArgb("#0A47BE");
-    public static readonly Color Navy = Color.FromArgb("#0B2A5B");
-    public static readonly Color Muted = Color.FromArgb("#5B6B84");
-    public static readonly Color Bg = Color.FromArgb("#EEF3FA");
-    public static readonly Color Line = Color.FromArgb("#E1E8F2");
+    public static Color Blue => ThemeColor("PrimaryColor", Color.FromArgb("#0066F0"));
+    public static Color BlueDark => ThemeColor("PrimaryDarkColor", Color.FromArgb("#0A47BE"));
+    public static Color Navy => ThemeColor("PrimaryTextColor", Color.FromArgb("#0B2A5B"));
+    public static Color Muted => ThemeColor("SecondaryTextColor", Color.FromArgb("#5B6B84"));
+    public static Color Bg => ThemeColor("PageBackgroundColor", Color.FromArgb("#EEF3FA"));
+    public static Color Line => ThemeColor("DividerColor", Color.FromArgb("#E1E8F2"));
     public static readonly Color Green = Color.FromArgb("#087F49");
     public static readonly Color GreenBg = Color.FromArgb("#E3F5EC");
     public static readonly Color BlueBg = Color.FromArgb("#E3EFFF");
@@ -18,7 +18,14 @@ public static class Pal
     public static readonly Color RedBg = Color.FromArgb("#FDECEC");
     public static readonly Color Amber = Color.FromArgb("#8A5200");
     public static readonly Color AmberBg = Color.FromArgb("#FFF1D6");
-    public static readonly Color FieldLine = Color.FromArgb("#CCD9EC");
+    public static Color FieldLine => ThemeColor("BorderColor", Color.FromArgb("#CCD9EC"));
+
+    private static Color ThemeColor(string key, Color fallback)
+    {
+        return Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
+            ? color
+            : fallback;
+    }
 }
 
 // Small helpers that keep the page code short.
@@ -26,7 +33,7 @@ public static class Ui
 {
     public static Label Text(string text, double size = 14, bool bold = false, Color? color = null, TextAlignment align = TextAlignment.Start)
     {
-        return new Label
+        var label = new Label
         {
             Text = text,
             FontSize = size,
@@ -34,23 +41,35 @@ public static class Ui
             TextColor = color ?? Pal.Navy,
             HorizontalTextAlignment = align
         };
+
+        if (color is null || color == Pal.Navy)
+            label.SetDynamicResource(Label.TextColorProperty, "PrimaryTextColor");
+        else if (color == Pal.Muted)
+            label.SetDynamicResource(Label.TextColorProperty, "SecondaryTextColor");
+
+        return label;
     }
 
     public static Border Card(View content, double radius = 20, Thickness? padding = null, Color? background = null)
     {
-        return new Border
+        var card = new Border
         {
             Content = content,
             StrokeThickness = 0,
             Padding = padding ?? new Thickness(16),
-            BackgroundColor = background ?? Colors.White,
+            BackgroundColor = background ?? ThemeColors.CardBackground,
             StrokeShape = new RoundRectangle { CornerRadius = radius }
         };
+        if (background is null)
+            card.SetDynamicResource(VisualElement.BackgroundColorProperty, "CardBackgroundColor");
+        return card;
     }
 
     public static BoxView Divider()
     {
-        return new BoxView { HeightRequest = 1, Color = Pal.Line, HorizontalOptions = LayoutOptions.Fill };
+        var divider = new BoxView { HeightRequest = 1, Color = Pal.Line, HorizontalOptions = LayoutOptions.Fill };
+        divider.SetDynamicResource(BoxView.ColorProperty, "DividerColor");
+        return divider;
     }
 
     public static Button Primary(string text, Color color, Func<Task> onClick)
@@ -76,7 +95,7 @@ public static class Ui
         var button = new Button
         {
             Text = text,
-            BackgroundColor = Colors.White,
+            BackgroundColor = ThemeColors.CardBackground,
             TextColor = Pal.Navy,
             BorderColor = Pal.FieldLine,
             BorderWidth = 1.5,
@@ -85,6 +104,9 @@ public static class Ui
             CornerRadius = 26,
             HeightRequest = 52
         };
+        button.SetDynamicResource(VisualElement.BackgroundColorProperty, "CardBackgroundColor");
+        button.SetDynamicResource(Button.TextColorProperty, "PrimaryTextColor");
+        button.SetDynamicResource(Button.BorderColorProperty, "BorderColor");
         button.Clicked += async (_, _) => await onClick();
         try { button.Behaviors.Add(new CashLedgerAndroid.Controls.ButtonPressBehavior()); } catch { }
         try { AutomationProperties.SetIsInAccessibleTree(button, true); } catch { }
@@ -93,11 +115,12 @@ public static class Ui
 
     public static Border Chip(string text, bool selected, Func<Task> onTap)
     {
+        var stroke = new SolidColorBrush(selected ? Pal.Blue : Pal.FieldLine);
         var chip = new Border
         {
             StrokeThickness = 1.5,
-            Stroke = new SolidColorBrush(selected ? Pal.Blue : Color.FromArgb("#BFD6F8")),
-            BackgroundColor = selected ? Pal.Blue : Color.FromArgb("#F2F8FF"),
+            Stroke = stroke,
+            BackgroundColor = selected ? Pal.Blue : ThemeColors.CardBackground,
             Padding = new Thickness(14, 8),
             StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Content = new Label
@@ -109,6 +132,10 @@ public static class Ui
                 VerticalTextAlignment = TextAlignment.Center
             }
         };
+        chip.SetDynamicResource(VisualElement.BackgroundColorProperty, selected ? "PrimaryColor" : "CardBackgroundColor");
+        stroke.SetDynamicResource(SolidColorBrush.ColorProperty, selected ? "PrimaryColor" : "BorderColor");
+        if (chip.Content is Label label && !selected)
+            label.SetDynamicResource(Label.TextColorProperty, "PrimaryTextColor");
         var tap = new TapGestureRecognizer();
         tap.Tapped += async (_, _) => await onTap();
         chip.GestureRecognizers.Add(tap);
@@ -142,15 +169,19 @@ public static class Ui
         var stack = new VerticalStackLayout { Spacing = 0 };
         stack.Add(Text(caption, 11, true, Pal.Muted));
         stack.Add(input);
-        return new Border
+        var stroke = new SolidColorBrush(Pal.FieldLine);
+        stroke.SetDynamicResource(SolidColorBrush.ColorProperty, "BorderColor");
+        var field = new Border
         {
             StrokeThickness = 1.5,
-            Stroke = new SolidColorBrush(Pal.FieldLine),
-            BackgroundColor = Colors.White,
+            Stroke = stroke,
+            BackgroundColor = ThemeColors.InputBackground,
             Padding = new Thickness(14, 6, 14, 2),
             StrokeShape = new RoundRectangle { CornerRadius = 14 },
             Content = stack
         };
+        field.SetDynamicResource(VisualElement.BackgroundColorProperty, "InputBackgroundColor");
+        return field;
     }
 
     public static Entry PlainEntry(string placeholder = "", Keyboard? keyboard = null, int maxLength = -1)
@@ -164,6 +195,7 @@ public static class Ui
             BackgroundColor = Colors.Transparent,
             Keyboard = keyboard ?? Keyboard.Default
         };
+        entry.SetDynamicResource(Entry.TextColorProperty, "PrimaryTextColor");
         if (maxLength > 0) entry.MaxLength = maxLength;
         return entry;
     }
